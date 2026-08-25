@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vender — Diapasón</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 40 40" fill="none">
+      <rect x="16" y="4" width="8" height="14" rx="2" fill="#CD9F3E"/>
+      <rect x="18.5" y="16" width="3" height="18" rx="1.5" fill="#EFE3CB"/>
+      <circle cx="20" cy="7" r="1.6" fill="#201409"/>
+      <circle cx="20" cy="12" r="1.6" fill="#201409"/>
+      <path d="M14 34c0 3.3 2.7 6 6 6s6-2.7 6-6-2.7-6-6-6-6 2.7-6 6z" stroke="#CD9F3E" stroke-width="2"/>
+    </svg>
+    <span class="brand-name">Diapasón</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="index.html">Inicio</a></li>
+    <li><a href="tienda.html">Tienda</a></li>
+    <li><a href="vender.html" class="current">Vender</a></li>
+  </ul>
+</nav>
+
+<section class="section" style="padding-bottom: 20px;">
+  <span class="eyebrow">Publicar</span>
+  <h1 style="font-size: 34px; margin: 10px 0 8px;">Publicá tu guitarra en minutos</h1>
+  <p style="color: var(--muted); max-width: 480px; margin: 0 0 30px;">Completá el formulario con lo esencial. Tu publicación aparece al instante en la tienda.</p>
+
+  <div class="sell-wrap">
+    <div class="panel">
+      <h2>Nueva publicación</h2>
+      <form id="sell-form" novalidate>
+        <div class="field">
+          <label for="name">Nombre del modelo</label>
+          <input id="name" type="text" placeholder="Ej: Ranchera Criolla" />
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label for="type">Tipo</label>
+            <select id="type">
+              <option>Eléctrica</option>
+              <option>Acústica</option>
+              <option>Bajo</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="condition">Estado</label>
+            <select id="condition">
+              <option>Nueva</option>
+              <option>Usada - Excelente</option>
+              <option>Usada - Buena</option>
+              <option>Para restaurar</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="price">Precio (ARS)</label>
+          <input id="price" type="number" min="1" placeholder="250000" />
+        </div>
+        <div class="field">
+          <label for="seller">Tu nombre</label>
+          <input id="seller" type="text" placeholder="Ej: Marisa T." />
+        </div>
+        <div class="field">
+          <label>Color</label>
+          <div class="swatches" id="swatches"></div>
+        </div>
+        <div class="field">
+          <label for="desc">Descripción</label>
+          <textarea id="desc" placeholder="Contá el estado, si tiene marcas, si viene con funda, etc."></textarea>
+        </div>
+        <p class="error-text" id="form-error" style="display:none;"></p>
+        <p class="success-text" id="form-success" style="display:none;">Publicación creada. Ya está visible en la tienda.</p>
+        <button type="submit" class="submit-btn">Publicar guitarra</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>Tus publicaciones</h2>
+      <div id="mine-list"></div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <span>Hecho a mano, como una buena guitarra. — Diapasón, 2026</span>
+  <a href="tienda.html" style="color: var(--brass);">Ver la tienda</a>
+</footer>
+
+<script src="js/data.js"></script>
+<script>
+  let selectedColor = PALETTE[0].hex;
+  const DEFAULT_SELLER = "Vos";
+
+  function renderSwatches() {
+    const container = document.getElementById("swatches");
+    container.innerHTML = PALETTE.map(
+      (c) => `
+        <button type="button" class="swatch-btn${c.hex === selectedColor ? " selected" : ""}"
+          style="background:${c.hex};" data-hex="${c.hex}" aria-label="${c.name}"></button>
+      `
+    ).join("");
+  }
+
+  document.getElementById("swatches").addEventListener("click", (e) => {
+    const btn = e.target.closest(".swatch-btn");
+    if (!btn) return;
+    selectedColor = btn.dataset.hex;
+    renderSwatches();
+  });
+
+  function renderMine() {
+    const guitars = loadGuitars();
+    const mine = guitars.filter((g) => g.seller === DEFAULT_SELLER);
+    const list = document.getElementById("mine-list");
+
+    if (mine.length === 0) {
+      list.innerHTML = `<p class="empty-state">Todavía no publicaste ninguna guitarra. Completá el formulario para empezar.</p>`;
+      return;
+    }
+
+    list.innerHTML = mine
+      .map(
+        (g) => `
+        <div class="mine-row">
+          <div>
+            <p class="mine-name">${g.name}</p>
+            <p class="mine-price">${money(g.price)}</p>
+          </div>
+          <div class="mine-actions">
+            <button class="pill-btn ${g.active ? "on" : ""}" data-action="toggle" data-id="${g.id}">
+              ${g.active ? "Publicada" : "Pausada"}
+            </button>
+            <button class="pill-btn danger" data-action="delete" data-id="${g.id}">Eliminar</button>
+          </div>
+        </div>
+      `
+      )
+      .join("");
+  }
+
+  document.getElementById("mine-list").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    const id = btn.dataset.id;
+    let guitars = loadGuitars();
+
+    if (btn.dataset.action === "toggle") {
+      guitars = guitars.map((g) =>
+        String(g.id) === String(id) ? { ...g, active: !g.active } : g
+      );
+    } else if (btn.dataset.action === "delete") {
+      guitars = guitars.filter((g) => String(g.id) !== String(id));
+    }
+
+    saveGuitars(guitars);
+    renderMine();
+  });
+
+  document.getElementById("sell-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = document.getElementById("name").value.trim();
+    const type = document.getElementById("type").value;
+    const condition = document.getElementById("condition").value;
+    const price = Number(document.getElementById("price").value);
+    const seller = document.getElementById("seller").value.trim() || DEFAULT_SELLER;
+    const desc = document.getElementById("desc").value.trim();
+    const errorEl = document.getElementById("form-error");
+    const successEl = document.getElementById("form-success");
+    successEl.style.display = "none";
+
+    if (!name) {
+      errorEl.textContent = "Ponele un nombre al modelo.";
+      errorEl.style.display = "block";
+      return;
+    }
+    if (!price || price <= 0) {
+      errorEl.textContent = "Ingresá un precio válido.";
+      errorEl.style.display = "block";
+      return;
+    }
+    errorEl.style.display = "none";
+
+    const guitars = loadGuitars();
+    guitars.unshift({
+      id: String(Date.now()),
+      name,
+      type,
+      price,
+      condition,
+      color: selectedColor,
+      description: desc || "Sin descripción.",
+      seller: DEFAULT_SELLER,
+      active: true,
+    });
+    saveGuitars(guitars);
+
+    e.target.reset();
+    selectedColor = PALETTE[0].hex;
+    renderSwatches();
+    successEl.style.display = "block";
+    renderMine();
+  });
+
+  renderSwatches();
+  renderMine();
+</script>
+
+</body>
+</html>
