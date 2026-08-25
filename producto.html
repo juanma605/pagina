@@ -36,7 +36,84 @@
 </footer>
 
 <script src="js/data.js"></script>
+<script src="js/motion.js"></script>
 <script>
+  let currentSlide = 0;
+
+  function galleryTemplate(g) {
+    const photos = g.photos && g.photos.length ? g.photos : null;
+
+    if (!photos) {
+      return `
+        <div class="product-visual reveal">
+          <div class="card-hole"></div>
+          <div class="card-string"></div>
+          <div class="product-swatch" style="background:${g.color};"></div>
+          <span class="card-type">${g.type}</span>
+          <div class="product-tags"><span class="tag">${g.condition}</span></div>
+        </div>
+      `;
+    }
+
+    const slides = photos
+      .map((src) => `<div class="gallery-slide"><img src="${src}" alt="${g.name}" /></div>`)
+      .join("");
+
+    const dots = photos
+      .map(
+        (_, i) =>
+          `<button class="gallery-dot${i === 0 ? " active" : ""}" data-index="${i}" aria-label="Foto ${i + 1}"></button>`
+      )
+      .join("");
+
+    const controls =
+      photos.length > 1
+        ? `
+        <button class="gallery-arrow prev" id="gallery-prev" aria-label="Foto anterior">‹</button>
+        <button class="gallery-arrow next" id="gallery-next" aria-label="Foto siguiente">›</button>
+        <div class="gallery-dots">${dots}</div>
+      `
+        : "";
+
+    return `
+      <div class="gallery reveal">
+        <div class="gallery-track" id="gallery-track">${slides}</div>
+        ${controls}
+      </div>
+    `;
+  }
+
+  function updateGallery(total) {
+    const track = document.getElementById("gallery-track");
+    if (!track) return;
+    track.style.transform = `translateX(-${currentSlide * 100}%)`;
+    document.querySelectorAll(".gallery-dot").forEach((dot, i) => {
+      dot.classList.toggle("active", i === currentSlide);
+    });
+  }
+
+  function setupGallery(total) {
+    if (total <= 1) return;
+    document.getElementById("gallery-prev").addEventListener("click", () => {
+      currentSlide = (currentSlide - 1 + total) % total;
+      updateGallery(total);
+    });
+    document.getElementById("gallery-next").addEventListener("click", () => {
+      currentSlide = (currentSlide + 1) % total;
+      updateGallery(total);
+    });
+    document.querySelectorAll(".gallery-dot").forEach((dot) => {
+      dot.addEventListener("click", () => {
+        currentSlide = Number(dot.dataset.index);
+        updateGallery(total);
+      });
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") { currentSlide = (currentSlide - 1 + total) % total; updateGallery(total); }
+      if (e.key === "ArrowRight") { currentSlide = (currentSlide + 1) % total; updateGallery(total); }
+    });
+  }
+
   function render() {
     const id = getParam("id");
     const guitars = loadGuitars();
@@ -56,18 +133,10 @@
     }
 
     section.innerHTML = `
-      <p class="breadcrumb"><a href="tienda.html">Tienda</a> / ${g.type} / ${g.name}</p>
+      <p class="breadcrumb reveal"><a href="tienda.html">Tienda</a> / ${g.type} / ${g.name}</p>
       <div class="product-wrap">
-        <div class="product-visual">
-          <div class="card-hole"></div>
-          <div class="card-string"></div>
-          <div class="product-swatch" style="background:${g.color};"></div>
-          <span class="card-type">${g.type}</span>
-          <div class="product-tags">
-            <span class="tag">${g.condition}</span>
-          </div>
-        </div>
-        <div class="product-info">
+        ${galleryTemplate(g)}
+        <div class="product-info reveal" style="transition-delay: 100ms;">
           <span class="eyebrow">${g.type}</span>
           <h1>${g.name}</h1>
           <p class="product-price">${money(g.price)}</p>
@@ -80,6 +149,10 @@
         </div>
       </div>
     `;
+
+    initReveal(section);
+    const total = g.photos && g.photos.length ? g.photos.length : 0;
+    setupGallery(total);
   }
 
   render();

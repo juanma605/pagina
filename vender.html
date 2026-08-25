@@ -8,6 +8,12 @@
 </head>
 <body>
 
+<script src="js/auth.js"></script>
+<script>
+  // Corta acá mismo si no hay sesión iniciada, antes de pintar el formulario.
+  requireAuth("login.html?redirect=vender.html");
+</script>
+
 <nav class="nav">
   <div class="brand">
     <svg class="brand-mark" viewBox="0 0 40 40" fill="none">
@@ -24,15 +30,20 @@
     <li><a href="tienda.html">Tienda</a></li>
     <li><a href="vender.html" class="current">Vender</a></li>
   </ul>
+  <div class="nav-session">
+    <span class="dot"></span>
+    Sesión iniciada
+    <button type="button" id="logout-btn">Salir</button>
+  </div>
 </nav>
 
 <section class="section" style="padding-bottom: 20px;">
-  <span class="eyebrow">Publicar</span>
-  <h1 style="font-size: 34px; margin: 10px 0 8px;">Publicá tu guitarra en minutos</h1>
-  <p style="color: var(--muted); max-width: 480px; margin: 0 0 30px;">Completá el formulario con lo esencial. Tu publicación aparece al instante en la tienda.</p>
+  <span class="eyebrow reveal">Publicar</span>
+  <h1 class="reveal" style="font-size: 34px; margin: 10px 0 8px;">Publicá tu guitarra en minutos</h1>
+  <p class="reveal" style="color: var(--muted); max-width: 480px; margin: 0 0 30px;">Completá el formulario con lo esencial y sumá fotos. Tu publicación aparece al instante en la tienda.</p>
 
   <div class="sell-wrap">
-    <div class="panel">
+    <div class="panel reveal">
       <h2>Nueva publicación</h2>
       <form id="sell-form" novalidate>
         <div class="field">
@@ -66,6 +77,20 @@
           <label for="seller">Tu nombre</label>
           <input id="seller" type="text" placeholder="Ej: Marisa T." />
         </div>
+
+        <div class="field">
+          <label>Fotos (hasta 5)</label>
+          <div class="upload-zone" id="upload-zone">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M4 16.5V18a2 2 0 002 2h12a2 2 0 002-2v-1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 15V4M12 4l-4 4M12 4l4 4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <p class="upload-hint">Arrastrá tus fotos acá o tocá para elegirlas</p>
+            <input type="file" id="photo-input" accept="image/*" multiple />
+          </div>
+          <div class="photo-previews" id="photo-previews"></div>
+        </div>
+
         <div class="field">
           <label>Color</label>
           <div class="swatches" id="swatches"></div>
@@ -80,7 +105,7 @@
       </form>
     </div>
 
-    <div class="panel">
+    <div class="panel reveal" style="transition-delay: 100ms;">
       <h2>Tus publicaciones</h2>
       <div id="mine-list"></div>
     </div>
@@ -93,8 +118,16 @@
 </footer>
 
 <script src="js/data.js"></script>
+<script src="js/motion.js"></script>
 <script>
+  document.getElementById("logout-btn").addEventListener("click", () => {
+    logout();
+    window.location.href = "index.html";
+  });
+
   let selectedColor = PALETTE[0].hex;
+  let selectedPhotos = [];
+  const MAX_PHOTOS = 5;
   const DEFAULT_SELLER = "Vos";
 
   function renderSwatches() {
@@ -114,6 +147,68 @@
     renderSwatches();
   });
 
+  // ---------- Carga de fotos ----------
+  const uploadZone = document.getElementById("upload-zone");
+  const photoInput = document.getElementById("photo-input");
+
+  function renderPhotoPreviews() {
+    const container = document.getElementById("photo-previews");
+    container.innerHTML = selectedPhotos
+      .map(
+        (src, i) => `
+        <div class="photo-thumb">
+          <img src="${src}" alt="Foto ${i + 1}" />
+          <button type="button" data-index="${i}" aria-label="Quitar foto">✕</button>
+        </div>
+      `
+      )
+      .join("");
+  }
+
+  document.getElementById("photo-previews").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-index]");
+    if (!btn) return;
+    selectedPhotos.splice(Number(btn.dataset.index), 1);
+    renderPhotoPreviews();
+  });
+
+  async function handleFiles(fileList) {
+    const files = Array.from(fileList).filter((f) => f.type.startsWith("image/"));
+    const room = MAX_PHOTOS - selectedPhotos.length;
+    const toProcess = files.slice(0, Math.max(room, 0));
+    for (const file of toProcess) {
+      try {
+        const dataUrl = await fileToDataURL(file);
+        selectedPhotos.push(dataUrl);
+        renderPhotoPreviews();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+
+  uploadZone.addEventListener("click", () => photoInput.click());
+  photoInput.addEventListener("change", (e) => {
+    handleFiles(e.target.files);
+    photoInput.value = "";
+  });
+  ["dragover", "dragenter"].forEach((evt) =>
+    uploadZone.addEventListener(evt, (e) => {
+      e.preventDefault();
+      uploadZone.classList.add("dragover");
+    })
+  );
+  ["dragleave", "drop"].forEach((evt) =>
+    uploadZone.addEventListener(evt, (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove("dragover");
+    })
+  );
+  uploadZone.addEventListener("drop", (e) => {
+    if (e.dataTransfer.files) handleFiles(e.dataTransfer.files);
+  });
+
+  // ---------- Mis publicaciones ----------
   function renderMine() {
     const guitars = loadGuitars();
     const mine = guitars.filter((g) => g.seller === DEFAULT_SELLER);
@@ -197,17 +292,22 @@
       description: desc || "Sin descripción.",
       seller: DEFAULT_SELLER,
       active: true,
+      photos: selectedPhotos,
     });
-    saveGuitars(guitars);
+    const ok = saveGuitars(guitars);
+    if (!ok) return;
 
     e.target.reset();
     selectedColor = PALETTE[0].hex;
+    selectedPhotos = [];
     renderSwatches();
+    renderPhotoPreviews();
     successEl.style.display = "block";
     renderMine();
   });
 
   renderSwatches();
+  renderPhotoPreviews();
   renderMine();
 </script>
 

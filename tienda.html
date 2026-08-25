@@ -27,11 +27,11 @@
 </nav>
 
 <section class="section" style="padding-bottom: 20px;">
-  <span class="eyebrow">Catálogo</span>
-  <h1 style="font-size: 34px; margin: 10px 0 8px;">Encontrá tu próxima guitarra</h1>
-  <p style="color: var(--muted); max-width: 480px; margin: 0;">Tocá una ficha para ver el detalle completo, el precio y quién la vende.</p>
+  <span class="eyebrow reveal">Catálogo</span>
+  <h1 class="reveal" style="font-size: 34px; margin: 10px 0 8px;">Encontrá tu próxima guitarra</h1>
+  <p class="reveal" style="color: var(--muted); max-width: 480px; margin: 0;">Tocá una ficha para ver el detalle completo, el precio y quién la vende.</p>
 
-  <div class="filters" id="filters">
+  <div class="filters reveal" id="filters">
     <button class="filter-btn active" data-filter="Todas">Todas</button>
     <button class="filter-btn" data-filter="Eléctrica">Eléctricas</button>
     <button class="filter-btn" data-filter="Acústica">Acústicas</button>
@@ -48,14 +48,27 @@
 </footer>
 
 <script src="js/data.js"></script>
+<script src="js/motion.js"></script>
 <script>
   let currentFilter = "Todas";
 
-  function cardTemplate(g) {
+  function mediaTemplate(g) {
+    if (g.photos && g.photos.length > 0) {
+      return `<div class="card-media"><img src="${g.photos[0]}" alt="${g.name}" loading="lazy" /></div>`;
+    }
     return `
-      <a class="card" href="producto.html?id=${g.id}">
+      <div class="card-media placeholder" style="background: linear-gradient(160deg, ${g.color}, rgba(0,0,0,0.35));">
+        <span>Sin foto</span>
+      </div>
+    `;
+  }
+
+  function cardTemplate(g, i) {
+    return `
+      <a class="card reveal" style="transition-delay:${Math.min(i, 8) * 60}ms;" href="producto.html?id=${g.id}">
         <div class="card-hole"></div>
         <div class="card-string"></div>
+        ${mediaTemplate(g)}
         <div class="card-top">
           <span class="swatch" style="background:${g.color};"></span>
           <span class="card-type">${g.type}</span>
@@ -76,6 +89,7 @@
     const empty = document.getElementById("empty-state");
     grid.innerHTML = filtered.map(cardTemplate).join("");
     empty.style.display = filtered.length === 0 ? "block" : "none";
+    initReveal(grid);
   }
 
   document.getElementById("filters").addEventListener("click", (e) => {

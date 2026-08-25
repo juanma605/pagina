@@ -21,6 +21,7 @@ const SEED_GUITARS = [
       "Guitarra criolla de tapa maciza de cedro, ideal para folklore y zamba. Encordado nuevo, sin golpes ni fisuras. Mástil recto, muy cómoda para principiantes y avanzados.",
     seller: "Marisa T.",
     active: true,
+    photos: [],
   },
   {
     id: "2",
@@ -33,6 +34,7 @@ const SEED_GUITARS = [
       "Doble cutaway, dos humbuckers de alta salida, mástil de arce con diapasón de palo rosa. Viene con funda acolchada y cable de 3 metros.",
     seller: "Guitarras Rioja",
     active: true,
+    photos: [],
   },
   {
     id: "3",
@@ -45,6 +47,7 @@ const SEED_GUITARS = [
       "Bajo de 4 cuerdas, cuerpo de fresno, pastillas activas. Algunas marcas de uso normal en la parte trasera, no afectan el sonido ni la afinación.",
     seller: "Nico G.",
     active: true,
+    photos: [],
   },
   {
     id: "4",
@@ -57,6 +60,7 @@ const SEED_GUITARS = [
       "Necesita ajuste de mástil y encordado nuevo. Cuerpo en buen estado general. Buena base para un proyecto de restauración o para aprender a lutear.",
     seller: "Marisa T.",
     active: true,
+    photos: [],
   },
   {
     id: "5",
@@ -69,6 +73,7 @@ const SEED_GUITARS = [
       "Single coils, tremolo funcional en perfecto estado, muy poco uso. Suena brillante y es ideal para blues y rock clásico.",
     seller: "Guitarras Rioja",
     active: true,
+    photos: [],
   },
   {
     id: "6",
@@ -81,6 +86,7 @@ const SEED_GUITARS = [
       "Cuerpo dreadnought, tapa de abeto macizo, aros y fondo de caoba. Sonido cálido con buena proyección, ideal para grabación.",
     seller: "Nico G.",
     active: true,
+    photos: [],
   },
 ];
 
@@ -91,7 +97,9 @@ function loadGuitars() {
     return [...SEED_GUITARS];
   }
   try {
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    // por si vienen de una versión anterior sin el campo "photos"
+    return parsed.map((g) => ({ photos: [], ...g }));
   } catch (e) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(SEED_GUITARS));
     return [...SEED_GUITARS];
@@ -99,7 +107,15 @@ function loadGuitars() {
 }
 
 function saveGuitars(guitars) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(guitars));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(guitars));
+    return true;
+  } catch (e) {
+    alert(
+      "No se pudo guardar: las fotos ocupan demasiado espacio en este navegador. Probá con menos fotos o imágenes más livianas."
+    );
+    return false;
+  }
 }
 
 function money(n) {
@@ -108,4 +124,28 @@ function money(n) {
 
 function getParam(name) {
   return new URLSearchParams(window.location.search).get(name);
+}
+
+// Convierte un archivo de imagen a un dataURL comprimido (JPEG),
+// para no romper el límite de almacenamiento del navegador.
+function fileToDataURL(file, maxWidth = 900, quality = 0.72) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("No se pudo leer el archivo."));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("No se pudo procesar la imagen."));
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
 }
