@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<<<<<<< HEAD
     <!-- Pantalla de carga estética -->
     <div id="global-loader" class="loader-overlay">
         <div class="sound-wave">
@@ -55,7 +54,7 @@
                 <div class="atelier-details">
                     <div class="detail-block reveal">
                         <h3>La Filosofía del Tono</h3>
-                        <p>La madera recuerda. Un árbol que soportó tormentas y sequías tiene una tensión interna que, al ser liberada por el formón y la lija, se convierte en frecuencias armónicas.</p>
+                        <p>La madera recuerda. Un árbol que soportó tormentas y sequías tiene una tensión interna que, al ser liberada por el formón y la lija, se convierte en frecuencias armónicas. Nuestro trabajo no es fabricar, es revelar la voz que ya existía en la veta.</p>
                     </div>
                     <div class="detail-gallery" data-parallax="0.025">
                         <img class="reveal" src="https://images.unsplash.com/photo-1596484552993-85af40e81796?auto=format&fit=crop&w=800&q=80" alt="Luthier trabajando">
@@ -171,184 +170,17 @@
         </div>
     </div>
 
-<div id="modal-login" class="overlay hidden">
+    <div id="modal-login" class="overlay hidden">
         <div class="modal-login-box">
             <button class="close-btn">&times;</button>
             <h2>Bóveda Restringida</h2>
-            <!-- Ahora requerimos credenciales reales, no texto plano -->
             <input type="email" id="inp-email" placeholder="Correo del Luthier" required autocomplete="email">
             <input type="password" id="inp-pass" placeholder="Firma Criptográfica" required autocomplete="current-password">
             <button id="btn-login" class="btn-aesthetic">Desbloquear Taller</button>
         </div>
     </div>
 
-    <!-- IMPORTANTE: type="module" es obligatorio para Firebase CDN -->
+    <!-- Tipo módulo requerido para Firebase -->
     <script type="module" src="app.js"></script>
-=======
-    <div class="site-frame"></div>
-
-    <div class="layout-container">
-        <!-- Sidebar Fijo -->
-        <aside class="sidebar">
-            <div class="brand">
-                <h1>Luthier</h1>
-                <span>Colección & Venta</span>
-            </div>
-            <nav class="nav-menu">
-                <button class="nav-item active" data-target="view-home">El Atelier</button>
-                <button class="nav-item" data-target="view-collection">Colección</button>
-            </nav>
-            <div class="socials">
-                <a href="#ig">Instagram</a>
-                <a href="#wa">WhatsApp</a>
-                <span id="admin-trigger" title="Acceso Reservado (Doble Clic)" aria-label="Acceso reservado">•</span>
-            </div>
-        </aside>
-
-        <!-- Contenido Dinámico -->
-        <main class="content-area">
-            
-            <!-- VISTA: EL ATELIER (Ahora con scroll y más contenido) -->
-            <section id="view-home" class="view-section active">
-                <div class="hero-editorial">
-                    <h2 class="hero-title">Madera,<br>Sangre y<br><em>Tono.</em></h2>
-                    <div class="hero-text">
-                        <p>No vendemos instrumentos. Traspasamos herramientas de expresión. Cada pieza en nuestra colección ha sido curada, calibrada y seleccionada por su resonancia única.</p>
-                        <button class="btn-aesthetic" onclick="document.querySelector('[data-target=\'view-collection\']').click()">Ver Instrumentos</button>
-                    </div>
-                </div>
-                
-                <!-- Nueva sección para hacer scroll -->
-                <div class="atelier-details">
-                    <div class="detail-block reveal">
-                        <h3>La Filosofía del Tono</h3>
-                        <p>La madera recuerda. Un árbol que soportó tormentas y sequías tiene una tensión interna que, al ser liberada por el formón y la lija, se convierte en frecuencias armónicas. Nuestro trabajo no es fabricar, es revelar la voz que ya existía en la veta.</p>
-                    </div>
-                    <div class="detail-gallery" data-parallax="0.025">
-                        <img class="reveal" src="https://images.unsplash.com/photo-1596484552993-85af40e81796?auto=format&fit=crop&w=800&q=80" alt="Luthier trabajando">
-                        <img class="reveal" src="https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?auto=format&fit=crop&w=800&q=80" alt="Detalle de madera">
-                    </div>
-                    <div class="detail-block reveal">
-                        <h3>Proceso Manual</h3>
-                        <p>Cada cejuela es tallada en hueso. Cada traste es nivelado con precisión milimétrica. Nos tomamos el tiempo necesario; la prisa es el enemigo de la perfección acústica.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- VISTA: COLECCIÓN -->
-            <section id="view-collection" class="view-section hidden">
-                <div class="collection-header">
-                    <h2>Inventario Actual</h2>
-                    <p>Piezas únicas. Si figura como vendida, ya es historia.</p>
-                </div>
-                <div class="catalog-controls">
-                    <div class="category-menu" role="tablist" aria-label="Filtrar por categoría">
-                        <button class="filter-btn active" data-category="all">Todo</button>
-                        <button class="filter-btn" data-category="bajo">Bajos</button>
-                        <button class="filter-btn" data-category="guitarra">Guitarras</button>
-                        <button class="filter-btn" data-category="piano">Pianos</button>
-                        <button class="filter-btn" data-category="amplificador">Amplificadores</button>
-                        <button class="filter-btn" data-category="otro">Otros</button>
-                    </div>
-                    <label class="sort-control">Ordenar por
-                        <select id="sort-products">
-                            <option value="date-desc">Más recientes</option>
-                            <option value="date-asc">Más antiguos</option>
-                            <option value="price-asc">Precio: menor a mayor</option>
-                            <option value="price-desc">Precio: mayor a menor</option>
-                        </select>
-                    </label>
-                </div>
-                <div id="product-grid" class="editorial-grid"></div>
-            </section>
-
-            <!-- VISTA: ADMIN -->
-            <section id="view-admin" class="view-section hidden">
-                <div class="admin-header">
-                    <h2>Taller Privado</h2>
-                    <button id="btn-logout" class="btn-text">Cerrar Sesión</button>
-                </div>
-                <form id="form-product" class="admin-form">
-                    <div class="form-group">
-                        <label>Nombre del Instrumento</label>
-                        <input type="text" id="inp-name" required autocomplete="off">
-                    </div>
-                    <div class="form-group">
-                        <label>Precio (USD)</label>
-                        <input type="number" id="inp-price" required min="1">
-                    </div>
-                    <div class="form-group">
-                        <label for="inp-category">Categoría</label>
-                        <select id="inp-category" required>
-                            <option value="bajo">Bajo</option>
-                            <option value="guitarra" selected>Guitarra</option>
-                            <option value="piano">Piano</option>
-                            <option value="amplificador">Amplificadores</option>
-                            <option value="otro">Otro</option>
-                        </select>
-                    </div>
-                    
-                    <!-- INPUT DE ARCHIVO MODIFICADO ESTÉTICAMENTE -->
-                    <div class="form-group">
-                        <label>Fotografía (Desde Celular o PC)</label>
-                        <input type="file" id="inp-file" accept="image/*" multiple class="hidden-file-input">
-                        <label for="inp-file" class="btn-aesthetic file-label" id="file-label-display">Seleccionar Imagen</label>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Descripción y Especificaciones</label>
-                        <textarea id="inp-desc" required rows="4"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Estado</label>
-                        <select id="inp-status">
-                            <option value="available">Disponible</option>
-                            <option value="sold">Vendida</option>
-                        </select>
-                    </div>
-                    <button type="submit" id="btn-submit" class="btn-aesthetic">Añadir al Inventario</button>
-                    <button type="button" id="btn-cancel-edit" class="btn-text hidden">Cancelar edición</button>
-                </form>
-                <div class="admin-inventory">
-                    <h3>Gestionar inventario</h3>
-                    <div id="admin-product-list"></div>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <!-- MODALES -->
-    <div id="modal-product" class="overlay hidden">
-        <div class="modal-editorial">
-            <button class="close-btn">&times;</button>
-            <div class="modal-image-col">
-                <img id="mod-img" src="" alt="Guitarra">
-                <button type="button" id="gallery-prev" class="gallery-control gallery-prev" aria-label="Foto anterior">&#8249;</button>
-                <button type="button" id="gallery-next" class="gallery-control gallery-next" aria-label="Foto siguiente">&#8250;</button>
-                <div id="gallery-dots" class="gallery-dots" aria-label="Fotos del producto"></div>
-                <div id="mod-status-tag" class="status-tag"></div>
-            </div>
-            <div class="modal-info-col">
-                <h2 id="mod-name">Nombre</h2>
-                <div class="price-tag" id="mod-price">$0</div>
-                <p id="mod-desc" class="desc-text"></p>
-                <div class="action-area">
-                    <button class="btn-aesthetic" onclick="alert('Redirigiendo a WhatsApp del vendedor...')">Contactar Luthier</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-login" class="overlay hidden">
-        <div class="modal-login-box">
-            <button class="close-btn">&times;</button>
-            <h2>Acceso Restringido</h2>
-            <input type="password" id="inp-pass" placeholder="Firma del Luthier (luthier123)">
-            <button id="btn-login" class="btn-aesthetic">Ingresar</button>
-        </div>
-    </div>
-
-    <script src="app.js"></script>
->>>>>>> 4b5564430443db83184e133173b37a1bcc0020d9
 </body>
 </html>
