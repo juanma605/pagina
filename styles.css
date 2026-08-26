@@ -256,6 +256,7 @@ h1, h2, h3, .hero-title, .brand {
     .sort-control select { flex: 1; }
     .admin-product-row { align-items: flex-start; flex-direction: column; }
 }
+<<<<<<< HEAD
 
 /* Loader Estético: Onda de Sonido */
 .loader-overlay {
@@ -289,3 +290,5 @@ h1, h2, h3, .hero-title, .brand {
 
 /* Prevenir clicks múltiples mientras carga */
 button:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+=======
+>>>>>>> 4b5564430443db83184e133173b37a1bcc0020d9
