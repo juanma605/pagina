@@ -1,0 +1,22 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    match /atelier_inventory/{fileName} {
+      // Cualquier visitante puede VER las fotos del catálogo
+      allow read: if true;
+
+      // Solo el luthier autenticado puede subir o borrar fotos,
+      // y solo si son imágenes de hasta 5MB (protege contra abuso de cuota)
+      allow write: if request.auth != null
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // Por defecto, todo lo demás queda bloqueado
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

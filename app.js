@@ -2,13 +2,30 @@ import { db, auth } from './firebase-config.js';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
+// ==========================================================
+// 📞 DATOS DE CONTACTO DEL VENDEDOR — REEMPLAZAR ANTES DE PUBLICAR
+// Formato del número: código de país + área + número, sin +, sin espacios, sin guiones.
+// Ejemplo Argentina (Buenos Aires, celular): "5491122334455"
+const WHATSAPP_NUMBER = "5491100000000"; // <-- PONER EL NÚMERO REAL ACÁ
+const INSTAGRAM_HANDLE = "tu_usuario"; // <-- PONER EL USUARIO DE INSTAGRAM ACÁ (sin @)
+
+// ☁️ ALMACENAMIENTO DE IMÁGENES — Cloudinary (plan gratis, sin tarjeta)
+// 1) Crear cuenta gratis en https://cloudinary.com
+// 2) Copiar el "Cloud name" del Dashboard y pegarlo abajo
+// 3) Ir a Settings > Upload > Upload presets > Add upload preset,
+//    poner "Signing Mode" en UNSIGNED, y pegar ese nombre de preset abajo
+const CLOUDINARY_CLOUD_NAME = "tu_cloud_name"; // <-- PONER EL CLOUD NAME ACÁ
+const CLOUDINARY_UPLOAD_PRESET = "tu_upload_preset"; // <-- PONER EL PRESET ACÁ
+// ==========================================================
+
 const INVENTORY_COLLECTION = 'atelier_inventory';
 let inventory = [];
 let activeCategory = 'all';
 let editingId = null;
 let currentGallery = [];
 let currentGalleryIndex = 0;
-let currentImagesBase64 = [];
+let currentImageBlobs = [];
+let currentProduct = null;
 
 const UI = {
     navItems: document.querySelectorAll('.nav-item'), views: document.querySelectorAll('.view-section'),
@@ -26,8 +43,13 @@ const UI = {
     adminList: document.getElementById('admin-product-list'), cancelEdit: document.getElementById('btn-cancel-edit'),
     sort: document.getElementById('sort-products'), filters: document.querySelectorAll('.filter-btn'),
     galleryPrev: document.getElementById('gallery-prev'), galleryNext: document.getElementById('gallery-next'),
-    galleryDots: document.getElementById('gallery-dots'), globalLoader: document.getElementById('global-loader')
+    galleryDots: document.getElementById('gallery-dots'), globalLoader: document.getElementById('global-loader'),
+    btnContact: document.getElementById('btn-contact'),
+    igLink: document.getElementById('social-instagram'), waLink: document.getElementById('social-whatsapp')
 };
+
+if (UI.igLink) UI.igLink.href = `https://instagram.com/${INSTAGRAM_HANDLE}`;
+if (UI.waLink) UI.waLink.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hola! Quería consultar por el atelier.')}`;
 
 onAuthStateChanged(auth, (user) => {
     if (!user && document.getElementById('view-admin').classList.contains('active')) {
@@ -47,6 +69,9 @@ async function fetchInventoryFromCloud() {
         renderAdminList();
     } catch (error) {
         console.error("Error obteniendo datos:", error);
+        if (UI.grid) {
+            UI.grid.innerHTML = '<p class="empty-state">No pudimos cargar la colección en este momento. Por favor, recargá la página en unos minutos.</p>';
+        }
     } finally {
         if(UI.globalLoader) UI.globalLoader.classList.add('hidden');
     }
@@ -90,6 +115,11 @@ function renderGrid() {
         })
         .sort((first, second) => Number(first.status === 'sold') - Number(second.status === 'sold'));
     
+    if (!products.length) {
+        UI.grid.innerHTML = '<p class="empty-state">Todavía no hay piezas cargadas en esta categoría. Volvé pronto.</p>';
+        return;
+    }
+
     products.forEach(item => {
         const isSold = item.status === 'sold';
         const card = document.createElement('div');
@@ -97,7 +127,7 @@ function renderGrid() {
         card.innerHTML = `
             <div class="card-img-wrapper">
                 ${isSold ? '<div class="sold-badge">VENDIDA</div>' : ''}
-                <img src="${item.image}" alt="${item.name}">
+                <img src="${item.image}" alt="${item.name}" loading="lazy">
             </div>
             <div class="card-meta">
                 <div><small>${item.category}</small><h3>${item.name}</h3></div><span>$${item.price.toLocaleString()}</span>
@@ -124,7 +154,7 @@ function renderAdminList() {
 
 async function deleteProduct(id, name) {
     if (!auth.currentUser) return alert("Acceso denegado. La sesión expiró.");
-    if (!confirm(`¿Borrar "${name}" permanentemente de la bóveda?`)) return;
+    if (!confirm(`¿Borrar "${name}" permanentemente de la bóveda? (La foto seguirá en tu cuenta de Cloudinary; podés borrarla ahí manualmente si querés liberar espacio)`)) return;
     try {
         UI.globalLoader.classList.remove('hidden');
         await deleteDoc(doc(db, INVENTORY_COLLECTION, id));
@@ -136,11 +166,30 @@ async function deleteProduct(id, name) {
     }
 }
 
+async function uploadPendingImages() {
+    const urls = [];
+    for (const blob of currentImageBlobs) {
+        const formData = new FormData();
+        formData.append('file', blob);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        formData.append('folder', 'atelier_inventory');
+
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        if (!response.ok) throw new Error('Falló la subida a Cloudinary');
+        const data = await response.json();
+        urls.push(data.secure_url);
+    }
+    return urls;
+}
+
 if(UI.formProduct) {
     UI.formProduct.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!auth.currentUser) return alert("Acceso denegado.");
-        if(!currentImagesBase64.length && !editingId) return alert('La imagen es el alma de la pieza. Requerida.');
+        if(!currentImageBlobs.length && !editingId) return alert('La imagen es el alma de la pieza. Requerida.');
 
         const productData = {
             name: document.getElementById('inp-name').value.trim(),
@@ -150,15 +199,16 @@ if(UI.formProduct) {
             category: UI.category.value
         };
 
-        if(currentImagesBase64.length) {
-            productData.image = currentImagesBase64[0];
-            productData.images = currentImagesBase64;
-        }
-
         try {
             UI.btnSubmit.disabled = true;
             UI.globalLoader.classList.remove('hidden');
-            
+
+            if (currentImageBlobs.length) {
+                const uploadedUrls = await uploadPendingImages();
+                productData.image = uploadedUrls[0];
+                productData.images = uploadedUrls;
+            }
+
             if (editingId) {
                 await updateDoc(doc(db, INVENTORY_COLLECTION, editingId), productData);
                 alert('Pieza afinada y sincronizada.');
@@ -170,6 +220,7 @@ if(UI.formProduct) {
             resetProductForm();
             await fetchInventoryFromCloud();
         } catch (error) {
+            console.error(error);
             alert("El servidor rechazó la ofrenda. Verifica tus permisos o el peso de la imagen.");
         } finally {
             UI.btnSubmit.disabled = false;
@@ -186,9 +237,9 @@ function startEditing(item) {
     document.getElementById('inp-desc').value = item.desc;
     document.getElementById('inp-status').value = item.status;
     
-    currentImagesBase64 = []; 
+    currentImageBlobs = []; 
     UI.inpFile.required = false;
-    UI.fileLabel.textContent = 'Conservar imagen actual o purgarla';
+    UI.fileLabel.textContent = 'Conservar imagen actual (o elegir nuevas fotos para reemplazarla)';
     UI.btnSubmit.textContent = 'Sobrescribir Registro';
     UI.cancelEdit.classList.remove('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -197,7 +248,7 @@ function startEditing(item) {
 function resetProductForm() {
     UI.formProduct.reset();
     editingId = null;
-    currentImagesBase64 = [];
+    currentImageBlobs = [];
     UI.inpFile.required = true;
     UI.fileLabel.textContent = 'Seleccionar Imagen';
     UI.fileLabel.style.color = 'var(--light)';
@@ -209,6 +260,7 @@ function resetProductForm() {
 if (UI.cancelEdit) UI.cancelEdit.addEventListener('click', resetProductForm);
 
 function openProduct(item) {
+    currentProduct = item;
     currentGallery = Array.isArray(item.images) && item.images.length ? item.images : [item.image];
     currentGalleryIndex = 0;
     renderGallery();
@@ -217,6 +269,16 @@ function openProduct(item) {
     UI.modStatus.textContent = item.status === 'sold' ? 'Colección Privada' : 'Disponible';
     UI.modStatus.style.color = item.status === 'sold' ? 'var(--bg-dark)' : 'var(--bg-dark)';
     UI.modStatus.style.backgroundColor = item.status === 'sold' ? 'var(--accent)' : 'var(--light)';
+
+    if (UI.btnContact) {
+        const isSold = item.status === 'sold';
+        UI.btnContact.textContent = isSold ? 'Consultar por instrumentos similares' : 'Contactar Luthier';
+        const message = isSold
+            ? `Hola! Vi la "${item.name}" pero figura vendida. ¿Tenés algo similar?`
+            : `Hola! Me interesa la "${item.name}" ($${item.price.toLocaleString()}). ¿Sigue disponible?`;
+        UI.btnContact.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    }
+
     UI.modalProd.classList.remove('hidden');
 }
 
@@ -276,14 +338,20 @@ if(UI.btnLogout) {
     });
 }
 
+const MAX_PHOTOS_PER_PRODUCT = 6;
+
 if(UI.inpFile) {
     UI.inpFile.addEventListener('change', function(e) {
-        const files = [...e.target.files];
+        let files = [...e.target.files];
+        if (files.length > MAX_PHOTOS_PER_PRODUCT) {
+            alert(`Máximo ${MAX_PHOTOS_PER_PRODUCT} fotos por instrumento. Se usarán las primeras ${MAX_PHOTOS_PER_PRODUCT}.`);
+            files = files.slice(0, MAX_PHOTOS_PER_PRODUCT);
+        }
         if(files.length) {
             UI.fileLabel.textContent = `Procesando ${files.length} foto(s)...`;
-            currentImagesBase64 = [];
-            Promise.all(files.map(compressImage)).then(images => {
-                currentImagesBase64 = images;
+            currentImageBlobs = [];
+            Promise.all(files.map(compressImageToBlob)).then(blobs => {
+                currentImageBlobs = blobs;
                 UI.fileLabel.textContent = `${files.length} foto(s) lista(s)`;
                 UI.fileLabel.style.color = 'var(--bg-dark)';
                 UI.fileLabel.style.backgroundColor = 'var(--accent)';
@@ -294,7 +362,9 @@ if(UI.inpFile) {
     });
 }
 
-function compressImage(file) {
+// Redimensiona cada foto a un ancho manejable y la devuelve como Blob JPEG,
+// listo para subir a Cloudinary (en vez de guardarla como base64 en Firestore).
+function compressImageToBlob(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -305,13 +375,15 @@ function compressImage(file) {
             img.onerror = reject;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 800; 
+                const MAX_WIDTH = 1200;
                 const scaleSize = Math.min(1, MAX_WIDTH / img.width);
                 canvas.width = img.width * scaleSize;
                 canvas.height = img.height * scaleSize;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                resolve(canvas.toDataURL('image/jpeg', 0.8));
+                canvas.toBlob(blob => {
+                    if (blob) resolve(blob); else reject(new Error('No se pudo procesar la imagen'));
+                }, 'image/jpeg', 0.82);
             };
         };
     });

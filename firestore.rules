@@ -1,0 +1,20 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Colección del inventario de instrumentos
+    match /atelier_inventory/{productId} {
+      // Cualquier visitante puede LEER el catálogo (necesario para que la web pública funcione)
+      allow read: if true;
+
+      // Solo un usuario autenticado (el luthier logueado) puede crear, editar o borrar
+      allow create, update, delete: if request.auth != null;
+    }
+
+    // Por defecto, todo lo demás queda bloqueado
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

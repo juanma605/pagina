@@ -121,6 +121,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 .sort-control select option, .form-group select option { background: var(--bg-dark); color: var(--light); }
 
 .editorial-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 40px; }
+.empty-state { grid-column: 1 / -1; color: var(--light-muted); font-style: italic; text-align: center; padding: 4rem 1rem; border: var(--border-thin); }
 .product-card { position: relative; cursor: pointer; }
 .product-card.reveal { transform: translateY(28px); }
 .product-card.reveal.is-visible { transform: translateY(0); }
