@@ -14,8 +14,8 @@ const INSTAGRAM_HANDLE = "tu_usuario"; // <-- PONER EL USUARIO DE INSTAGRAM ACÁ
 // 2) Copiar el "Cloud name" del Dashboard y pegarlo abajo
 // 3) Ir a Settings > Upload > Upload presets > Add upload preset,
 //    poner "Signing Mode" en UNSIGNED, y pegar ese nombre de preset abajo
-const CLOUDINARY_CLOUD_NAME = "tu_cloud_name"; // <-- PONER EL CLOUD NAME ACÁ
-const CLOUDINARY_UPLOAD_PRESET = "tu_upload_preset"; // <-- PONER EL PRESET ACÁ
+const CLOUDINARY_CLOUD_NAME = "yvf4ohnz"; // <-- PONER EL CLOUD NAME ACÁ
+const CLOUDINARY_UPLOAD_PRESET = "claude.preset"; // <-- PONER EL PRESET ACÁ
 // ==========================================================
 
 const INVENTORY_COLLECTION = 'atelier_inventory';
