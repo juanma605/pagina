@@ -6,8 +6,8 @@ import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https:/
 // 📞 DATOS DE CONTACTO DEL VENDEDOR — REEMPLAZAR ANTES DE PUBLICAR
 // Formato del número: código de país + área + número, sin +, sin espacios, sin guiones.
 // Ejemplo Argentina (Buenos Aires, celular): "5491122334455"
-const WHATSAPP_NUMBER = "5491100000000"; // <-- PONER EL NÚMERO REAL ACÁ
-const INSTAGRAM_HANDLE = "tu_usuario"; // <-- PONER EL USUARIO DE INSTAGRAM ACÁ (sin @)
+const WHATSAPP_NUMBER = "5491125507062"; // <-- PONER EL NÚMERO REAL ACÁ
+const INSTAGRAM_HANDLE = "shanti_guitars"; // <-- PONER EL USUARIO DE INSTAGRAM ACÁ (sin @)
 
 // ☁️ ALMACENAMIENTO DE IMÁGENES — Cloudinary (plan gratis, sin tarjeta)
 // 1) Crear cuenta gratis en https://cloudinary.com
