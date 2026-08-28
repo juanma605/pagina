@@ -234,11 +234,11 @@ button:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
     transform: scale(1) translateY(0);
 }
 .modal-editorial {
-    background: var(--bg-dark); border: none; width: 90%;
-    max-width: 1000px; display: flex; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    background: var(--bg-dark); border: none; width: min(1000px, calc(100% - 2rem));
+    max-height: calc(100vh - 2rem); display: flex; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
 }
-.modal-image-col { flex: 1; position: relative; overflow: hidden; background-size: cover; background-position: center; }
-.modal-image-col img { width: 100%; height: 600px; object-fit: contain; background: var(--bg-dark); display: block; opacity: 0; transition: opacity 0.5s ease, transform 0.3s ease; cursor: zoom-in; }
+.modal-image-col { flex: 1 1 50%; min-width: 0; position: relative; overflow: hidden; background-size: cover; background-position: center; }
+.modal-image-col img { width: 100%; height: min(600px, calc(100vh - 2rem)); object-fit: contain; background: var(--bg-dark); display: block; opacity: 0; transition: opacity 0.5s ease, transform 0.3s ease; cursor: zoom-in; }
 .modal-image-col img.img-loaded { opacity: 1; }
 .modal-image-col img.zoomed { transform: scale(2); cursor: zoom-out; }
 .gallery-control { align-items: center; background: rgba(59, 24, 29, 0.8); border: none; border-radius: 50%; color: var(--light); cursor: pointer; display: flex; font-family: 'Playfair Display', serif; font-size: 2rem; height: 42px; justify-content: center; line-height: 1; padding: 0 0 4px; position: absolute; top: calc(50% - 21px); width: 42px; z-index: 3; }
@@ -249,12 +249,12 @@ button:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 .gallery-dots { bottom: 18px; display: flex; gap: 8px; justify-content: center; left: 0; position: absolute; right: 0; z-index: 3; }
 .gallery-dot { background: var(--light-muted); border: 1px solid var(--light); border-radius: 50%; cursor: pointer; height: 9px; padding: 0; width: 9px; }
 .gallery-dot.active { background: var(--accent); border-color: var(--accent); }
-.modal-info-col { flex: 1; padding: 4rem; display: flex; flex-direction: column; justify-content: center; }
-.modal-info-col h2 { font-size: 2.5rem; margin-bottom: 0.5rem;}
-.price-tag { color: var(--accent); font-family: 'Playfair Display', serif; font-size: 2rem; font-style: italic; margin-bottom: 2rem;}
+.modal-info-col { flex: 1 1 50%; min-width: 0; overflow-y: auto; padding: clamp(1.5rem, 4vw, 4rem); display: flex; flex-direction: column; justify-content: center; }
+.modal-info-col h2 { font-size: clamp(1.8rem, 3vw, 2.5rem); line-height: 1.15; margin-bottom: 0.5rem; overflow-wrap: anywhere; }
+.price-tag { color: var(--accent); font-family: 'Playfair Display', serif; font-size: 2rem; font-style: italic; margin-bottom: 1.25rem;}
 .desc-text {
-    color: var(--light-muted); line-height: 1.8; margin-bottom: 3rem; white-space: pre-line;
-    max-height: 260px; overflow-y: auto; padding-right: 14px;
+    color: var(--light-muted); line-height: 1.65; margin-bottom: 1.5rem; white-space: pre-line;
+    max-height: min(220px, 30vh); overflow-y: auto; padding-right: 14px;
 }
 .desc-text::-webkit-scrollbar { width: 5px; }
 .desc-text::-webkit-scrollbar-track { background: transparent; }
@@ -264,22 +264,15 @@ button:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
     color: var(--light); border: var(--border-thin); padding: 5px 15px;
     letter-spacing: 2px; text-transform: uppercase; font-size: 0.8rem;
 }
-.story-block {
-    border-left: var(--border-thin); padding-left: 1.2rem; margin-bottom: 2rem;
-}
-.story-label {
-    display: block; color: var(--accent); font-size: 0.7rem; letter-spacing: 2px;
-    text-transform: uppercase; margin-bottom: 0.5rem; font-family: 'Lato', sans-serif;
-}
-.story-block p {
-    color: var(--light-muted); font-family: 'Playfair Display', serif; font-style: italic;
-    line-height: 1.7; font-size: 1.05rem;
-}
 .close-btn {
-    position: absolute; top: 20px; right: 20px; background: none; border: none;
-    color: var(--accent); font-size: 2rem; cursor: pointer; z-index: 10;
-    line-height: 1; padding: 0; appearance: none;
+    align-items: center; appearance: none; background: var(--bg-dark); border: 1px solid var(--accent);
+    color: var(--light); cursor: pointer; display: flex; font-size: 1.5rem; height: 36px;
+    justify-content: center; line-height: 1; padding: 0 0 3px; position: absolute; right: 16px;
+    top: 16px; width: 36px; z-index: 10;
 }
+.close-btn:hover { background: var(--accent); color: var(--bg-dark); }
+.action-area { margin-top: auto; padding-top: 0.5rem; }
+.action-area .btn-aesthetic { max-width: 100%; }
 .modal-login-box {
     background: var(--bg-dark); border: var(--border-thin); padding: 3rem;
     text-align: center; position: relative;
@@ -319,8 +312,9 @@ button:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
     .layout-container { flex-direction: column; }
     .sidebar { width: 100%; height: auto; border-right: none; border-bottom: var(--border-thin); padding-bottom: 28px; position: relative; top: 0; margin-bottom: 30px; gap: 2rem;}
     .content-area { padding-left: 0; }
-    .modal-editorial { flex-direction: column; height: 90vh; overflow-y: auto; }
+    .modal-editorial { flex-direction: column; height: 90vh; max-height: 90vh; overflow-y: auto; }
     .desc-text { max-height: none; overflow-y: visible; padding-right: 0; }
+    .modal-image-col { flex: none; }
     .modal-image-col img { height: 300px; cursor: default; }
     .modal-image-col img.zoomed { transform: none; }
     .detail-gallery { grid-template-columns: 1fr; }

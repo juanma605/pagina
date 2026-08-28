@@ -35,7 +35,6 @@ const UI = {
     modImg: document.getElementById('mod-img'), modName: document.getElementById('mod-name'),
     modPrice: document.getElementById('mod-price'), modDesc: document.getElementById('mod-desc'),
     modStatus: document.getElementById('mod-status-tag'), adminTrigger: document.getElementById('admin-trigger'),
-    modStory: document.getElementById('mod-story'), modStoryText: document.getElementById('mod-story-text'),
     modalLogin: document.getElementById('modal-login'), 
     inpEmail: document.getElementById('inp-email'),
     inpPass: document.getElementById('inp-pass'),
@@ -247,8 +246,7 @@ if(UI.formProduct) {
             name: document.getElementById('inp-name').value.trim(),
             price,
             discountPrice: discountPrice !== null ? discountPrice : null,
-            desc: document.getElementById('inp-desc').value.trim(), 
-            story: document.getElementById('inp-story').value.trim() || null,
+            desc: document.getElementById('inp-desc').value.trim(),
             status: document.getElementById('inp-status').value,
             category: UI.category.value
         };
@@ -290,7 +288,6 @@ function startEditing(item) {
     document.getElementById('inp-discount-price').value = item.discountPrice || '';
     UI.category.value = item.category;
     document.getElementById('inp-desc').value = item.desc;
-    document.getElementById('inp-story').value = item.story || '';
     document.getElementById('inp-status').value = item.status;
     
     currentImageBlobs = []; 
@@ -338,13 +335,6 @@ function openProduct(item) {
     renderGallery();
     UI.modName.textContent = item.name;
     UI.modPrice.innerHTML = renderPriceHTML(item); UI.modDesc.textContent = item.desc;
- 
-    if (item.story && item.story.trim()) {
-        UI.modStoryText.textContent = item.story;
-        UI.modStory.classList.remove('hidden');
-    } else {
-        UI.modStory.classList.add('hidden');
-    }
     UI.modStatus.textContent = item.status === 'sold' ? 'Colección Privada' : 'Disponible';
     UI.modStatus.style.color = item.status === 'sold' ? 'var(--bg-dark)' : 'var(--bg-dark)';
     UI.modStatus.style.backgroundColor = item.status === 'sold' ? 'var(--accent)' : 'var(--light)';
