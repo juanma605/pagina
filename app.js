@@ -21,6 +21,7 @@ const CLOUDINARY_UPLOAD_PRESET = "claude.preset"; // <-- PONER EL PRESET ACÁ
 const INVENTORY_COLLECTION = 'atelier_inventory';
 let inventory = [];
 let activeCategory = 'all';
+let searchQuery = '';
 let editingId = null;
 let currentGallery = [];
 let currentGalleryIndex = 0;
@@ -42,6 +43,7 @@ const UI = {
     btnSubmit: document.getElementById('btn-submit'), category: document.getElementById('inp-category'),
     adminList: document.getElementById('admin-product-list'), cancelEdit: document.getElementById('btn-cancel-edit'),
     sort: document.getElementById('sort-products'), filters: document.querySelectorAll('.filter-btn'),
+    search: document.getElementById('search-input'),
     galleryPrev: document.getElementById('gallery-prev'), galleryNext: document.getElementById('gallery-next'),
     galleryDots: document.getElementById('gallery-dots'), globalLoader: document.getElementById('global-loader'),
     btnContact: document.getElementById('btn-contact'),
@@ -104,7 +106,7 @@ UI.navItems.forEach(btn => btn.addEventListener('click', (e) => switchView(e.tar
 function renderPriceHTML(item) {
     const hasDiscount = item.discountPrice && item.discountPrice > 0 && item.discountPrice < item.price;
     if (hasDiscount) {
-        return `<span class="price-original">$${item.price.toLocaleString()}</span><span class="price-discounted">$${item.discountPrice.toLocaleString()}</span>`;
+        return `<span class="discount-badge">Oferta</span><span class="price-original">$${item.price.toLocaleString()}</span><span class="price-discounted">$${item.discountPrice.toLocaleString()}</span>`;
     }
     return `<span class="price-discounted">$${item.price.toLocaleString()}</span>`;
 }
@@ -115,6 +117,11 @@ function renderGrid() {
     const sortValue = UI.sort ? UI.sort.value : 'date-desc';
     const products = inventory
         .filter(item => activeCategory === 'all' || item.category === activeCategory)
+        .filter(item => {
+            if (!searchQuery) return true;
+            const haystack = `${item.name} ${item.desc}`.toLowerCase();
+            return haystack.includes(searchQuery);
+        })
         .sort((first, second) => {
             if (sortValue === 'price-asc') return first.price - second.price;
             if (sortValue === 'price-desc') return second.price - first.price;
@@ -124,7 +131,9 @@ function renderGrid() {
         .sort((first, second) => Number(first.status === 'sold') - Number(second.status === 'sold'));
     
     if (!products.length) {
-        UI.grid.innerHTML = '<p class="empty-state">Todavía no hay piezas cargadas en esta categoría. Volvé pronto.</p>';
+        UI.grid.innerHTML = searchQuery
+            ? `<p class="empty-state">No encontramos instrumentos que coincidan con "${UI.search.value.trim()}".</p>`
+            : '<p class="empty-state">Todavía no hay piezas cargadas en esta categoría. Volvé pronto.</p>';
         return;
     }
 
@@ -415,6 +424,10 @@ UI.filters.forEach(btn => btn.addEventListener('click', () => {
     renderGrid();
 }));
 if (UI.sort) UI.sort.addEventListener('change', renderGrid);
+if (UI.search) UI.search.addEventListener('input', () => {
+    searchQuery = UI.search.value.trim().toLowerCase();
+    renderGrid();
+});
 
 const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
