@@ -34,6 +34,7 @@ const UI = {
     modImg: document.getElementById('mod-img'), modName: document.getElementById('mod-name'),
     modPrice: document.getElementById('mod-price'), modDesc: document.getElementById('mod-desc'),
     modStatus: document.getElementById('mod-status-tag'), adminTrigger: document.getElementById('admin-trigger'),
+    modStory: document.getElementById('mod-story'), modStoryText: document.getElementById('mod-story-text'),
     modalLogin: document.getElementById('modal-login'), 
     inpEmail: document.getElementById('inp-email'),
     inpPass: document.getElementById('inp-pass'),
@@ -59,9 +60,26 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
+function renderSkeletonGrid(count = 6) {
+    if (!UI.grid) return;
+    UI.grid.innerHTML = Array.from({ length: count }).map(() => `
+        <div class="product-card skeleton-card">
+            <div class="card-img-wrapper skeleton-shimmer"></div>
+            <div class="card-meta">
+                <div>
+                    <small class="skeleton-shimmer skeleton-line" style="width:70px;"></small>
+                    <h3 class="skeleton-shimmer skeleton-line" style="width:150px;height:1.4rem;margin-top:8px;"></h3>
+                </div>
+                <span class="skeleton-shimmer skeleton-line" style="width:60px;height:1.2rem;"></span>
+            </div>
+        </div>
+    `).join('');
+}
+
 async function fetchInventoryFromCloud() {
     try {
         if(UI.globalLoader) UI.globalLoader.classList.remove('hidden');
+        if (!inventory.length) renderSkeletonGrid();
         const querySnapshot = await getDocs(collection(db, INVENTORY_COLLECTION));
         inventory = [];
         querySnapshot.forEach((doc) => {
@@ -103,6 +121,13 @@ function switchView(targetId) {
 }
 UI.navItems.forEach(btn => btn.addEventListener('click', (e) => switchView(e.target.dataset.target)));
 
+// Genera una versión borrosa y liviana de una imagen de Cloudinary insertando
+// una transformación en la URL, para mostrarla como placeholder mientras carga la real.
+function getBlurredUrl(url) {
+    if (!url || typeof url !== 'string' || !url.includes('/upload/')) return url;
+    return url.replace('/upload/', '/upload/e_blur:1500,q_1,w_40/');
+}
+ 
 function renderPriceHTML(item) {
     const hasDiscount = item.discountPrice && item.discountPrice > 0 && item.discountPrice < item.price;
     if (hasDiscount) {
@@ -142,9 +167,9 @@ function renderGrid() {
         const card = document.createElement('div');
         card.className = `product-card ${isSold ? 'is-sold' : ''}`;
         card.innerHTML = `
-            <div class="card-img-wrapper">
+            <div class="card-img-wrapper" style="background-image:url('${getBlurredUrl(item.image)}')">
                 ${isSold ? '<div class="sold-badge">VENDIDA</div>' : ''}
-                <img src="${item.image}" alt="${item.name}" loading="lazy">
+                <img src="${item.image}" alt="${item.name}" loading="lazy" onload="this.classList.add('img-loaded')">
             </div>
             <div class="card-meta">
                 <div><small>${item.category}</small><h3>${item.name}</h3></div><div class="price-wrap">${renderPriceHTML(item)}</div>
@@ -221,6 +246,7 @@ if(UI.formProduct) {
             price,
             discountPrice: discountPrice !== null ? discountPrice : null,
             desc: document.getElementById('inp-desc').value.trim(), 
+            story: document.getElementById('inp-story').value.trim() || null,
             status: document.getElementById('inp-status').value,
             category: UI.category.value
         };
@@ -262,6 +288,7 @@ function startEditing(item) {
     document.getElementById('inp-discount-price').value = item.discountPrice || '';
     UI.category.value = item.category;
     document.getElementById('inp-desc').value = item.desc;
+    document.getElementById('inp-story').value = item.story || '';
     document.getElementById('inp-status').value = item.status;
     
     currentImageBlobs = []; 
@@ -293,6 +320,13 @@ function openProduct(item) {
     renderGallery();
     UI.modName.textContent = item.name;
     UI.modPrice.innerHTML = renderPriceHTML(item); UI.modDesc.textContent = item.desc;
+ 
+    if (item.story && item.story.trim()) {
+        UI.modStoryText.textContent = item.story;
+        UI.modStory.classList.remove('hidden');
+    } else {
+        UI.modStory.classList.add('hidden');
+    }
     UI.modStatus.textContent = item.status === 'sold' ? 'Colección Privada' : 'Disponible';
     UI.modStatus.style.color = item.status === 'sold' ? 'var(--bg-dark)' : 'var(--bg-dark)';
     UI.modStatus.style.backgroundColor = item.status === 'sold' ? 'var(--accent)' : 'var(--light)';
@@ -312,7 +346,13 @@ function openProduct(item) {
 }
 
 function renderGallery() {
-    UI.modImg.src = currentGallery[currentGalleryIndex];
+    const currentUrl = currentGallery[currentGalleryIndex];
+    const wrapper = UI.modImg.closest('.modal-image-col');
+    UI.modImg.classList.remove('img-loaded');
+    if (wrapper) wrapper.style.backgroundImage = `url('${getBlurredUrl(currentUrl)}')`;
+    UI.modImg.onload = () => UI.modImg.classList.add('img-loaded');
+    UI.modImg.src = currentUrl;
+    resetZoom();
     const hasMultiple = currentGallery.length > 1;
     UI.galleryPrev.classList.toggle('hidden', !hasMultiple);
     UI.galleryNext.classList.toggle('hidden', !hasMultiple);
@@ -325,6 +365,23 @@ function renderGallery() {
     });
 }
 
+function resetZoom() {
+    UI.modImg.classList.remove('zoomed');
+    UI.modImg.style.transformOrigin = 'center';
+}
+ 
+function initImageZoom() {
+    UI.modImg.addEventListener('mousemove', (e) => {
+        const rect = UI.modImg.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        UI.modImg.style.transformOrigin = `${x}% ${y}%`;
+    });
+    UI.modImg.addEventListener('mouseenter', () => UI.modImg.classList.add('zoomed'));
+    UI.modImg.addEventListener('mouseleave', resetZoom);
+}
+initImageZoom();
+ 
 function moveGallery(dir) {
     if (currentGallery.length < 2) return;
     currentGalleryIndex = (currentGalleryIndex + dir + currentGallery.length) % currentGallery.length;

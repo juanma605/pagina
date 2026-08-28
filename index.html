@@ -4,6 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atelier de Guitarras | Colección Privada</title>
+    <meta name="description" content="Colección privada de guitarras, bajos y pianos curados a mano. Instrumentos únicos, calidad artesanal, sincronizados en tiempo real.">
+    <meta name="theme-color" content="#3B181D">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Open Graph: cómo se ve el link al compartirlo por WhatsApp/Instagram/etc -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Atelier de Guitarras | Colección Privada">
+    <meta property="og:description" content="No vendemos instrumentos, traspasamos herramientas de expresión. Colección curada de guitarras, bajos y pianos.">
+    <!-- TODO: reemplazar por una foto real de tu mejor instrumento cuando tengas el catálogo cargado -->
+    <meta property="og:image" content="https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?auto=format&fit=crop&w=1200&q=80">
+    <!-- TODO: reemplazar por tu dominio real cuando lo tengas -->
+    <meta property="og:url" content="https://tudominio.com">
+    <meta name="twitter:card" content="summary_large_image">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -137,6 +151,10 @@
                         <textarea id="inp-desc" required rows="4"></textarea>
                     </div>
                     <div class="form-group">
+                        <label>Historia / Procedencia — Opcional</label>
+                        <textarea id="inp-story" rows="3" placeholder="De dónde viene la madera, quién la construyó, algún dato o anécdota que le dé alma a la pieza..."></textarea>
+                    </div>
+                    <div class="form-group">
                         <label>Estado</label>
                         <select id="inp-status">
                             <option value="available">Disponible</option>
@@ -170,6 +188,10 @@
                 <div class="price-tag" id="mod-price">$0</div>
                 <p id="mod-desc" class="desc-text"></p>
                 <div class="desc-fade"></div>
+                <div id="mod-story" class="story-block hidden">
+                    <span class="story-label">Historia de la pieza</span>
+                    <p id="mod-story-text"></p>
+                </div>
                 <div class="action-area">
                     <a id="btn-contact" class="btn-aesthetic" href="#" target="_blank" rel="noopener">Contactar Luthier</a>
                 </div>
