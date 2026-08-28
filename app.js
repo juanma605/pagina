@@ -106,7 +106,7 @@ UI.navItems.forEach(btn => btn.addEventListener('click', (e) => switchView(e.tar
 function renderPriceHTML(item) {
     const hasDiscount = item.discountPrice && item.discountPrice > 0 && item.discountPrice < item.price;
     if (hasDiscount) {
-        return `<span class="discount-badge">Oferta</span><span class="price-original">$${item.price.toLocaleString()}</span><span class="price-discounted">$${item.discountPrice.toLocaleString()}</span>`;
+        return `<span class="price-original">$${item.price.toLocaleString()}</span><span class="price-discounted">$${item.discountPrice.toLocaleString()}</span>`;
     }
     return `<span class="price-discounted">$${item.price.toLocaleString()}</span>`;
 }
