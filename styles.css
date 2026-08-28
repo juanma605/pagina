@@ -318,7 +318,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
     .content-area { padding-left: 0; }
     .modal-editorial { flex-direction: column; height: 90vh; max-height: 90vh; overflow-y: auto; }
     .desc-text { max-height: none; overflow-y: visible; padding-right: 0; }
-    .modal-image-col { flex: none; }
+    .modal-image-col { flex: none; margin-bottom: 1rem; }
     .modal-image-col img { height: 300px; cursor: default; }
     .modal-image-col img.zoomed { transform: none; }
     .detail-gallery { grid-template-columns: 1fr; }
