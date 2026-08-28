@@ -135,7 +135,11 @@ button:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 .card-meta { margin-top: 15px; display: flex; justify-content: space-between; align-items: flex-end; }
 .card-meta small { color: var(--accent); display: block; font-size: 0.65rem; letter-spacing: 2px; margin-bottom: 0.35rem; text-transform: uppercase; }
 .card-meta h3 { font-size: 1.4rem; color: var(--light); }
-.card-meta span { color: var(--accent); font-family: 'Playfair Display', serif; font-size: 1.2rem; font-style: italic; }
+.card-meta span, .card-meta .price-wrap { color: var(--accent); font-family: 'Playfair Display', serif; font-size: 1.2rem; font-style: italic; }
+.price-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 0.15rem; }
+.price-original { color: var(--light-muted); font-size: 0.75em; text-decoration: line-through; font-style: normal; }
+.price-discounted { color: var(--accent); }
+.price-tag .price-original { font-size: 0.55em; margin-right: 0.75rem; display: inline-block; }
 .product-card.is-sold img { filter: grayscale(100%) opacity(0.4); }
 .sold-badge {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -191,7 +195,13 @@ button:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 .modal-info-col { flex: 1; padding: 3rem; display: flex; flex-direction: column; justify-content: center; }
 .modal-info-col h2 { font-size: 2.5rem; margin-bottom: 0.5rem;}
 .price-tag { color: var(--accent); font-family: 'Playfair Display', serif; font-size: 2rem; font-style: italic; margin-bottom: 2rem;}
-.desc-text { color: var(--light-muted); line-height: 1.8; margin-bottom: 3rem; white-space: pre-line;}
+.desc-text {
+    color: var(--light-muted); line-height: 1.8; margin-bottom: 3rem; white-space: pre-line;
+    max-height: 260px; overflow-y: auto; padding-right: 14px;
+}
+.desc-text::-webkit-scrollbar { width: 5px; }
+.desc-text::-webkit-scrollbar-track { background: transparent; }
+.desc-text::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
 .status-tag {
     position: absolute; top: 20px; left: 20px; background: var(--bg-dark);
     color: var(--light); border: var(--border-thin); padding: 5px 15px;
@@ -241,6 +251,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
     .sidebar { width: 100%; height: auto; border-right: none; border-bottom: var(--border-thin); padding-bottom: 28px; position: relative; top: 0; margin-bottom: 30px; gap: 2rem;}
     .content-area { padding-left: 0; }
     .modal-editorial { flex-direction: column; height: 90vh; overflow-y: auto; }
+    .desc-text { max-height: none; overflow-y: visible; padding-right: 0; }
     .modal-image-col img { height: 300px; }
     .detail-gallery { grid-template-columns: 1fr; }
     .catalog-controls { align-items: flex-start; flex-direction: column; }

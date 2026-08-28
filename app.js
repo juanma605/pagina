@@ -101,6 +101,14 @@ function switchView(targetId) {
 }
 UI.navItems.forEach(btn => btn.addEventListener('click', (e) => switchView(e.target.dataset.target)));
 
+function renderPriceHTML(item) {
+    const hasDiscount = item.discountPrice && item.discountPrice > 0 && item.discountPrice < item.price;
+    if (hasDiscount) {
+        return `<span class="price-original">$${item.price.toLocaleString()}</span><span class="price-discounted">$${item.discountPrice.toLocaleString()}</span>`;
+    }
+    return `<span class="price-discounted">$${item.price.toLocaleString()}</span>`;
+}
+ 
 function renderGrid() {
     if(!UI.grid) return;
     UI.grid.innerHTML = '';
@@ -130,7 +138,7 @@ function renderGrid() {
                 <img src="${item.image}" alt="${item.name}" loading="lazy">
             </div>
             <div class="card-meta">
-                <div><small>${item.category}</small><h3>${item.name}</h3></div><span>$${item.price.toLocaleString()}</span>
+                <div><small>${item.category}</small><h3>${item.name}</h3></div><div class="price-wrap">${renderPriceHTML(item)}</div>
             </div>
         `;
         card.addEventListener('click', () => openProduct(item));
@@ -145,7 +153,7 @@ function renderAdminList() {
     inventory.slice().sort((first, second) => second.createdAt - first.createdAt).forEach(item => {
         const row = document.createElement('div');
         row.className = 'admin-product-row';
-        row.innerHTML = `<div><strong>${item.name}</strong><span>${item.category} · $${item.price.toLocaleString()} · ${item.status === 'sold' ? 'Vendida' : 'Disponible'}</span></div><div class="admin-row-actions"><button class="btn-text edit-product" type="button">Editar</button><button class="btn-text delete-product" type="button">Borrar</button></div>`;
+        row.innerHTML = `<div><strong>${item.name}</strong><span>${item.category} · ${item.discountPrice && item.discountPrice > 0 && item.discountPrice < item.price ? `$${item.price.toLocaleString()} → $${item.discountPrice.toLocaleString()}` : `$${item.price.toLocaleString()}`} · ${item.status === 'sold' ? 'Vendida' : 'Disponible'}</span></div><div class="admin-row-actions"><button class="btn-text edit-product" type="button">Editar</button><button class="btn-text delete-product" type="button">Borrar</button></div>`;
         row.querySelector('.edit-product').addEventListener('click', () => startEditing(item));
         row.querySelector('.delete-product').addEventListener('click', () => deleteProduct(item.id, item.name));
         UI.adminList.appendChild(row);
@@ -191,9 +199,18 @@ if(UI.formProduct) {
         if (!auth.currentUser) return alert("Acceso denegado.");
         if(!currentImageBlobs.length && !editingId) return alert('La imagen es el alma de la pieza. Requerida.');
 
+        const price = parseFloat(document.getElementById('inp-price').value);
+        const discountRaw = document.getElementById('inp-discount-price').value;
+        const discountPrice = discountRaw ? parseFloat(discountRaw) : null;
+
+        if (discountPrice !== null && discountPrice >= price) {
+            return alert('El precio con descuento tiene que ser menor al precio original.');
+        }
+
         const productData = {
             name: document.getElementById('inp-name').value.trim(),
-            price: parseFloat(document.getElementById('inp-price').value), 
+            price,
+            discountPrice: discountPrice !== null ? discountPrice : null,
             desc: document.getElementById('inp-desc').value.trim(), 
             status: document.getElementById('inp-status').value,
             category: UI.category.value
@@ -233,6 +250,7 @@ function startEditing(item) {
     editingId = item.id;
     document.getElementById('inp-name').value = item.name;
     document.getElementById('inp-price').value = item.price;
+    document.getElementById('inp-discount-price').value = item.discountPrice || '';
     UI.category.value = item.category;
     document.getElementById('inp-desc').value = item.desc;
     document.getElementById('inp-status').value = item.status;
@@ -265,17 +283,19 @@ function openProduct(item) {
     currentGalleryIndex = 0;
     renderGallery();
     UI.modName.textContent = item.name;
-    UI.modPrice.textContent = `$${item.price.toLocaleString()}`; UI.modDesc.textContent = item.desc;
+    UI.modPrice.innerHTML = renderPriceHTML(item); UI.modDesc.textContent = item.desc;
     UI.modStatus.textContent = item.status === 'sold' ? 'Colección Privada' : 'Disponible';
     UI.modStatus.style.color = item.status === 'sold' ? 'var(--bg-dark)' : 'var(--bg-dark)';
     UI.modStatus.style.backgroundColor = item.status === 'sold' ? 'var(--accent)' : 'var(--light)';
 
     if (UI.btnContact) {
         const isSold = item.status === 'sold';
+        const hasDiscount = item.discountPrice && item.discountPrice > 0 && item.discountPrice < item.price;
+        const displayPrice = hasDiscount ? item.discountPrice : item.price;
         UI.btnContact.textContent = isSold ? 'Consultar por instrumentos similares' : 'Contactar Luthier';
         const message = isSold
             ? `Hola! Vi la "${item.name}" pero figura vendida. ¿Tenés algo similar?`
-            : `Hola! Me interesa la "${item.name}" ($${item.price.toLocaleString()}). ¿Sigue disponible?`;
+            : `Hola! Me interesa la "${item.name}" ($${displayPrice.toLocaleString()}). ¿Sigue disponible?`;
         UI.btnContact.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
     }
 

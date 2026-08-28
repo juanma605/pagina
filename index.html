@@ -109,6 +109,10 @@
                         <input type="number" id="inp-price" required min="1">
                     </div>
                     <div class="form-group">
+                        <label>Precio con Descuento (USD) — Opcional</label>
+                        <input type="number" id="inp-discount-price" min="0" placeholder="Dejar vacío si no hay oferta">
+                    </div>
+                    <div class="form-group">
                         <label for="inp-category">Categoría</label>
                         <select id="inp-category" required>
                             <option value="bajo">Bajo</option>
@@ -162,6 +166,7 @@
                 <h2 id="mod-name">Nombre</h2>
                 <div class="price-tag" id="mod-price">$0</div>
                 <p id="mod-desc" class="desc-text"></p>
+                <div class="desc-fade"></div>
                 <div class="action-area">
                     <a id="btn-contact" class="btn-aesthetic" href="#" target="_blank" rel="noopener">Contactar Luthier</a>
                 </div>
