@@ -170,7 +170,14 @@ button:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 .card-meta h3 { font-size: 1.4rem; color: var(--light); }
 .card-meta span, .card-meta .price-wrap { color: var(--accent); font-family: 'Playfair Display', serif; font-size: 1.2rem; font-style: italic; }
 .price-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 0.15rem; }
-.price-original { color: var(--light-muted); font-size: 0.75em; text-decoration: line-through; font-style: normal; }
+.price-original {
+    color: var(--light-muted); font-size: 0.75em; font-style: normal;
+    position: relative; text-decoration: none;
+}
+.price-original::after {
+    background: currentColor; content: ''; height: 1px;
+    left: 0; position: absolute; right: 0; top: 55%;
+}
 .price-discounted { color: var(--accent); }
 .discount-badge {
     background: var(--accent); color: var(--bg-dark); font-family: 'Lato', sans-serif;
