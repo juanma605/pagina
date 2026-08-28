@@ -386,7 +386,7 @@ function openProduct(item) {
     renderGallery();
     UI.modName.textContent = item.name;
     UI.modPrice.innerHTML = renderPriceHTML(item); UI.modDesc.textContent = item.desc;
-    UI.modStatus.textContent = item.status === 'sold' ? 'Colección Privada' : 'Disponible';
+    UI.modStatus.textContent = item.status === 'sold' ? 'vendida' : 'Disponible';
     UI.modStatus.style.color = item.status === 'sold' ? 'var(--bg-dark)' : 'var(--bg-dark)';
     UI.modStatus.style.backgroundColor = item.status === 'sold' ? 'var(--accent)' : 'var(--light)';
 

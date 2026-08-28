@@ -186,7 +186,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 }
 .price-tag .price-original { font-size: 0.55em; margin-right: 0.75rem; display: inline-block; }
 .price-tag .discount-badge { margin-right: 0.75rem; vertical-align: middle; }
-.product-card.is-sold img { filter: grayscale(100%) opacity(0.4); }
+.product-card.is-sold img { filter: grayscale(100%); opacity: 1; }
 .sold-badge {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
     background: var(--bg-dark); color: var(--accent); padding: 10px 30px;
