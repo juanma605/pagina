@@ -217,7 +217,11 @@ button:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 .hidden-file-input { width: 0.1px; height: 0.1px; opacity: 0; overflow: hidden; position: absolute; z-index: -1; }
 .file-label { width: 100%; cursor: pointer; box-sizing: border-box; text-align: center; }
 .file-preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; margin-top: 12px; }
-.file-preview img { width: 100%; aspect-ratio: 1; object-fit: cover; border: 1px solid rgba(163, 111, 53, 0.55); filter: sepia(0.15); }
+.file-preview-item { aspect-ratio: 1; cursor: grab; position: relative; }
+.file-preview-item.is-dragging { opacity: 0.45; }
+.file-preview-item img { width: 100%; height: 100%; object-fit: cover; border: 1px solid rgba(163, 111, 53, 0.55); filter: sepia(0.15); }
+.remove-preview { align-items: center; background: var(--bg-dark); border: 1px solid var(--light); border-radius: 50%; color: var(--light); cursor: pointer; display: flex; font-size: 1rem; height: 24px; justify-content: center; line-height: 1; padding: 0 0 2px; position: absolute; right: 5px; top: 5px; width: 24px; }
+.remove-preview:hover { background: var(--accent); color: var(--bg-dark); }
 
 .overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;

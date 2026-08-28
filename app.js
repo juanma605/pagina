@@ -28,6 +28,8 @@ let currentGalleryIndex = 0;
 let currentImageBlobs = [];
 let currentProduct = null;
 let previewUrls = [];
+let selectedImageFiles = [];
+let draggedPreviewIndex = null;
 
 const UI = {
     navItems: document.querySelectorAll('.nav-item'), views: document.querySelectorAll('.view-section'),
@@ -302,6 +304,7 @@ function resetProductForm() {
     UI.formProduct.reset();
     editingId = null;
     currentImageBlobs = [];
+    selectedImageFiles = [];
     clearImagePreviews();
     UI.inpFile.required = true;
     UI.fileLabel.textContent = 'Seleccionar Imagen';
@@ -324,8 +327,56 @@ function renderImagePreviews(files) {
     clearImagePreviews();
     previewUrls = files.map(file => URL.createObjectURL(file));
     UI.filePreview.innerHTML = previewUrls.map((url, index) => `
-        <img src="${url}" alt="Vista previa de la foto ${index + 1}">
+        <div class="file-preview-item" draggable="true" data-preview-index="${index}">
+            <img src="${url}" alt="Vista previa de la foto ${index + 1}">
+            <button type="button" class="remove-preview" data-preview-index="${index}" aria-label="Quitar foto ${index + 1}">&times;</button>
+        </div>
     `).join('');
+    UI.filePreview.querySelectorAll('.remove-preview').forEach(button => {
+        button.addEventListener('click', () => removeSelectedImage(Number(button.dataset.previewIndex)));
+    });
+    UI.filePreview.querySelectorAll('.file-preview-item').forEach(item => {
+        item.addEventListener('dragstart', () => {
+            draggedPreviewIndex = Number(item.dataset.previewIndex);
+            item.classList.add('is-dragging');
+        });
+        item.addEventListener('dragend', () => {
+            draggedPreviewIndex = null;
+            item.classList.remove('is-dragging');
+        });
+        item.addEventListener('dragover', event => event.preventDefault());
+        item.addEventListener('drop', event => {
+            event.preventDefault();
+            const targetIndex = Number(item.dataset.previewIndex);
+            if (draggedPreviewIndex === null || draggedPreviewIndex === targetIndex) return;
+            const [movedFile] = selectedImageFiles.splice(draggedPreviewIndex, 1);
+            selectedImageFiles.splice(targetIndex, 0, movedFile);
+            renderImagePreviews(selectedImageFiles);
+            syncCompressedImages();
+        });
+    });
+}
+
+function removeSelectedImage(index) {
+    selectedImageFiles.splice(index, 1);
+    renderImagePreviews(selectedImageFiles);
+    syncCompressedImages();
+    UI.fileLabel.textContent = selectedImageFiles.length
+        ? `${selectedImageFiles.length} foto(s) seleccionada(s)`
+        : 'Seleccionar Imagen';
+    if (!selectedImageFiles.length) {
+        UI.fileLabel.style.color = 'var(--light)';
+        UI.fileLabel.style.backgroundColor = 'transparent';
+    }
+}
+
+function syncCompressedImages() {
+    currentImageBlobs = [];
+    return Promise.all(selectedImageFiles.map(compressImageToBlob)).then(blobs => {
+        currentImageBlobs = blobs;
+    }).catch(() => {
+        UI.fileLabel.textContent = 'Error. La madera resiste.';
+    });
 }
 
 function openProduct(item) {
@@ -436,23 +487,21 @@ const MAX_PHOTOS_PER_PRODUCT = 6;
 
 if(UI.inpFile) {
     UI.inpFile.addEventListener('change', function(e) {
-        let files = [...e.target.files];
-        clearImagePreviews();
-        if (files.length > MAX_PHOTOS_PER_PRODUCT) {
+        const newFiles = [...e.target.files];
+        const availableSlots = MAX_PHOTOS_PER_PRODUCT - selectedImageFiles.length;
+        let files = newFiles.slice(0, Math.max(availableSlots, 0));
+        if (newFiles.length > files.length) {
             alert(`Máximo ${MAX_PHOTOS_PER_PRODUCT} fotos por instrumento. Se usarán las primeras ${MAX_PHOTOS_PER_PRODUCT}.`);
-            files = files.slice(0, MAX_PHOTOS_PER_PRODUCT);
         }
-        if(files.length) {
-            renderImagePreviews(files);
-            UI.fileLabel.textContent = `Procesando ${files.length} foto(s)...`;
-            currentImageBlobs = [];
-            Promise.all(files.map(compressImageToBlob)).then(blobs => {
-                currentImageBlobs = blobs;
-                UI.fileLabel.textContent = `${files.length} foto(s) lista(s)`;
+        selectedImageFiles.push(...files);
+        UI.inpFile.value = '';
+        if(selectedImageFiles.length) {
+            renderImagePreviews(selectedImageFiles);
+            UI.fileLabel.textContent = `Procesando ${selectedImageFiles.length} foto(s)...`;
+            syncCompressedImages().then(() => {
+                UI.fileLabel.textContent = `${selectedImageFiles.length} foto(s) lista(s)`;
                 UI.fileLabel.style.color = 'var(--bg-dark)';
                 UI.fileLabel.style.backgroundColor = 'var(--accent)';
-            }).catch(() => {
-                UI.fileLabel.textContent = 'Error. La madera resiste.';
             });
         }
     });
