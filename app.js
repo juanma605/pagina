@@ -27,6 +27,7 @@ let currentGallery = [];
 let currentGalleryIndex = 0;
 let currentImageBlobs = [];
 let currentProduct = null;
+let previewUrls = [];
 
 const UI = {
     navItems: document.querySelectorAll('.nav-item'), views: document.querySelectorAll('.view-section'),
@@ -41,6 +42,7 @@ const UI = {
     btnLogin: document.getElementById('btn-login'), btnLogout: document.getElementById('btn-logout'),
     formProduct: document.getElementById('form-product'), closeBtns: document.querySelectorAll('.close-btn'),
     inpFile: document.getElementById('inp-file'), fileLabel: document.getElementById('file-label-display'),
+    filePreview: document.getElementById('file-preview'),
     btnSubmit: document.getElementById('btn-submit'), category: document.getElementById('inp-category'),
     adminList: document.getElementById('admin-product-list'), cancelEdit: document.getElementById('btn-cancel-edit'),
     sort: document.getElementById('sort-products'), filters: document.querySelectorAll('.filter-btn'),
@@ -303,6 +305,7 @@ function resetProductForm() {
     UI.formProduct.reset();
     editingId = null;
     currentImageBlobs = [];
+    clearImagePreviews();
     UI.inpFile.required = true;
     UI.fileLabel.textContent = 'Seleccionar Imagen';
     UI.fileLabel.style.color = 'var(--light)';
@@ -312,6 +315,21 @@ function resetProductForm() {
 }
 
 if (UI.cancelEdit) UI.cancelEdit.addEventListener('click', resetProductForm);
+
+function clearImagePreviews() {
+    previewUrls.forEach(url => URL.revokeObjectURL(url));
+    previewUrls = [];
+    if (UI.filePreview) UI.filePreview.innerHTML = '';
+}
+
+function renderImagePreviews(files) {
+    if (!UI.filePreview) return;
+    clearImagePreviews();
+    previewUrls = files.map(file => URL.createObjectURL(file));
+    UI.filePreview.innerHTML = previewUrls.map((url, index) => `
+        <img src="${url}" alt="Vista previa de la foto ${index + 1}">
+    `).join('');
+}
 
 function openProduct(item) {
     currentProduct = item;
@@ -429,11 +447,13 @@ const MAX_PHOTOS_PER_PRODUCT = 6;
 if(UI.inpFile) {
     UI.inpFile.addEventListener('change', function(e) {
         let files = [...e.target.files];
+        clearImagePreviews();
         if (files.length > MAX_PHOTOS_PER_PRODUCT) {
             alert(`Máximo ${MAX_PHOTOS_PER_PRODUCT} fotos por instrumento. Se usarán las primeras ${MAX_PHOTOS_PER_PRODUCT}.`);
             files = files.slice(0, MAX_PHOTOS_PER_PRODUCT);
         }
         if(files.length) {
+            renderImagePreviews(files);
             UI.fileLabel.textContent = `Procesando ${files.length} foto(s)...`;
             currentImageBlobs = [];
             Promise.all(files.map(compressImageToBlob)).then(blobs => {
