@@ -81,6 +81,12 @@ h1, h2, h3, .hero-title, .brand {
 .detail-gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .detail-gallery img { width: 100%; height: 400px; object-fit: cover; filter: sepia(0.3) brightness(0.8); border: var(--border-thin); will-change: transform, opacity; }
 
+.location-section { margin-top: 10vh; padding: 4rem; background: rgba(163, 111, 53, 0.1); border: var(--border-thin); display: flex; align-items: center; justify-content: center; }
+.location-content { text-align: center; max-width: 600px; }
+.location-content h3 { font-size: 2.5rem; color: var(--accent); margin-bottom: 1rem; }
+.location-content p { color: var(--light-muted); line-height: 1.8; font-size: 1.1rem; margin-bottom: 2rem; }
+.location-content .btn-aesthetic { margin-top: 1rem; }
+
 .btn-aesthetic {
     background: transparent; color: var(--light); border: 1px solid var(--accent);
     padding: 15px 30px; font-family: 'Lato', sans-serif; text-transform: uppercase;
